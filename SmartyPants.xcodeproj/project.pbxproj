@@ -18,6 +18,7 @@
 		8D22CD6F2CC1229E002C5EF3 /* Keys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D22CD6E2CC1229E002C5EF3 /* Keys.swift */; };
 		8D22CD712CC12B4D002C5EF3 /* GenerativeAI.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8D22CD702CC12B4D002C5EF3 /* GenerativeAI.plist */; };
 		8D22CD732CC1338B002C5EF3 /* ChatCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D22CD722CC1338B002C5EF3 /* ChatCellView.swift */; };
+		8D22CD752CC14D8A002C5EF3 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D22CD742CC14D8A002C5EF3 /* ChatViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +52,7 @@
 		8D22CD6E2CC1229E002C5EF3 /* Keys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keys.swift; sourceTree = "<group>"; };
 		8D22CD702CC12B4D002C5EF3 /* GenerativeAI.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = GenerativeAI.plist; sourceTree = "<group>"; };
 		8D22CD722CC1338B002C5EF3 /* ChatCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatCellView.swift; sourceTree = "<group>"; };
+		8D22CD742CC14D8A002C5EF3 /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -105,6 +107,7 @@
 				8D22CD722CC1338B002C5EF3 /* ChatCellView.swift */,
 				8D22CD412CC12226002C5EF3 /* SmartyPantsApp.swift */,
 				8D22CD432CC12226002C5EF3 /* ChatView.swift */,
+				8D22CD742CC14D8A002C5EF3 /* ChatViewModel.swift */,
 				8D22CD6E2CC1229E002C5EF3 /* Keys.swift */,
 				8D22CD702CC12B4D002C5EF3 /* GenerativeAI.plist */,
 				8D22CD452CC12227002C5EF3 /* Assets.xcassets */,
@@ -277,6 +280,7 @@
 			files = (
 				8D22CD732CC1338B002C5EF3 /* ChatCellView.swift in Sources */,
 				8D22CD442CC12226002C5EF3 /* ChatView.swift in Sources */,
+				8D22CD752CC14D8A002C5EF3 /* ChatViewModel.swift in Sources */,
 				8D22CD6F2CC1229E002C5EF3 /* Keys.swift in Sources */,
 				8D22CD422CC12226002C5EF3 /* SmartyPantsApp.swift in Sources */,
 			);

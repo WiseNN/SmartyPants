@@ -12,35 +12,47 @@ struct ChatCellView: View {
 	let cellColor: Color
 	let alignment: Alignment
 	let fontColor: Color
+	let message: String
+	
 	
 	
 	var body: some View {
 		HStack {
 			if alignment == .leading {
-				Text("Samepl Text ds dljkncs kdj cksdjfv nksdfjv nskdfjvn sdfkjvn ksdfjnv ksdjfvn skdfjv nskdfjv skjdfvn ksdjfvn jnacskk")
+				Text(message)
 					.font(.subheadline)
+					.fontWeight(.semibold)
 					.foregroundStyle(fontColor)
 					.padding(EdgeInsets(top: 15, leading: 20, bottom: 15, trailing: 20))
 					.background(cellColor)
 					.clipShape(RoundedRectangle(cornerRadius: 12))
-					.frame(width: .infinity)
+					.background(.clear)
+					.listStyle(.plain)
+					
+
 					
 				Spacer(minLength: 100)
 			} else {
 				Spacer(minLength: 100)
-				Text("Samepl Text ds dljkncs kdj cksdjfv nksdfjv nskdfjvn sdfkjvn ksdfjnv ksdjfvn skdfjv nskdfjv skjdfvn ksdjfvn jnacskk")
+				Text(message)
+					.font(.subheadline)
+					.fontWeight(.semibold)
+					.foregroundStyle(fontColor)
 					.padding(EdgeInsets(top: 15, leading: 20, bottom: 15, trailing: 20))
 					.background(cellColor)
 					.clipShape(RoundedRectangle(cornerRadius: 12))
-					.frame(width: .infinity)
+					.background(.clear)
+
 					
 			}
 		}
+		.listRowSeparator(.hidden)
+		.listRowBackground(Color.clear)
 	}
 }
 
 
 
 #Preview {
-	ChatCellView(cellColor: .gray, alignment: .leading, fontColor: .black)
+	ChatCellView(cellColor: .gray, alignment: .leading, fontColor: .black, message: "Hi There!")
 }

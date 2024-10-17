@@ -11,7 +11,7 @@ import SwiftUI
 struct SmartyPantsApp: App {
     var body: some Scene {
         WindowGroup {
-            ChatView()
+            ChatView(viewModel: ChatViewModel())
         }
     }
 }
