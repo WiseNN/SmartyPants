@@ -14,10 +14,10 @@ class ChatViewModel: ObservableObject {
 	@Published var msgText = ""
 	
 	@Published var msgAry: [GenAI_Request_DTO] = [
-		GenAI_Response_Parts_DTO(role: .user, parts: [GenAI_Message_Text_DTO(text: "Me")]),
-		GenAI_Response_Parts_DTO(role: .model, parts: [GenAI_Message_Text_DTO(text: "You")]),
-		GenAI_Response_Parts_DTO(role: .user, parts: [GenAI_Message_Text_DTO(text: "Me")]),
-		GenAI_Response_Parts_DTO(role: .model, parts: [GenAI_Message_Text_DTO(text: "You")])
+		GenAI_Response_Parts_DTO(role: .user, parts: [GenAI_Message_Text_DTO(text: "Me").encoded()]),
+		GenAI_Response_Parts_DTO(role: .model, parts: [GenAI_Message_Text_DTO(text: "You").encoded()]),
+		GenAI_Response_Parts_DTO(role: .user, parts: [GenAI_Message_Text_DTO(text: "Me").encoded()]),
+		GenAI_Response_Parts_DTO(role: .model, parts: [GenAI_Message_Text_DTO(text: "You").encoded()])
 	]
 	
 	
@@ -46,10 +46,10 @@ class ChatViewModel: ObservableObject {
 				await MainActor.run {
 					if self.msgAry.last?.role == .user  {
 						var lastMsg = self.msgAry.removeLast()
-						lastMsg.parts.append(GenAI_Message_Text_DTO(text: msg))
+						lastMsg.parts.append(GenAI_Message_Text_DTO(text: msg).encoded())
 						self.msgAry.append(lastMsg)
 					} else {
-						self.msgAry.append(GenAI_Request_DTO(role: .user, parts: [GenAI_Message_Text_DTO(text: msg)]))
+						self.msgAry.append(GenAI_Request_DTO(role: .user, parts: [GenAI_Message_Text_DTO(text: msg).encoded()]))
 					}
 				}
 				let urlStr = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=\(Keys.API.default)"
@@ -57,9 +57,16 @@ class ChatViewModel: ObservableObject {
 				var urlRequest = URLRequest(url: url)
 				urlRequest.httpMethod = "POST"
 				urlRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
+				
+				
 				let genAIConvo = GenAI_Convo_Request_DTO(contents: self.msgAry)
 				
-				urlRequest.httpBody = try JSONEncoder().encode(genAIConvo.self)
+				let contentDict = genAIConvo.toDictionary()
+				print(contentDict)
+				
+				let encondedContentDict = try JSONSerialization.data(withJSONObject: contentDict!)
+				
+				urlRequest.httpBody = encondedContentDict
 				print("BODY: \(String(data: urlRequest.httpBody!, encoding: .utf8) ?? "[No Body]")")
 				let (data, urlResp) = try await URLSession.shared.data(for: urlRequest)
 				

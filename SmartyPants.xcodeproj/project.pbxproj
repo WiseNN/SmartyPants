@@ -20,6 +20,7 @@
 		8D22CD732CC1338B002C5EF3 /* ChatCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D22CD722CC1338B002C5EF3 /* ChatCellView.swift */; };
 		8D22CD752CC14D8A002C5EF3 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D22CD742CC14D8A002C5EF3 /* ChatViewModel.swift */; };
 		8D22CD772CC178F8002C5EF3 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D22CD762CC178F8002C5EF3 /* Models.swift */; };
+		8D22CD7A2CC688B3002C5EF3 /* CachedAsyncImage in Frameworks */ = {isa = PBXBuildFile; productRef = 8D22CD792CC688B3002C5EF3 /* CachedAsyncImage */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +64,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D22CD6D2CC12266002C5EF3 /* GoogleGenerativeAI in Frameworks */,
+				8D22CD7A2CC688B3002C5EF3 /* CachedAsyncImage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -162,6 +164,7 @@
 			name = SmartyPants;
 			packageProductDependencies = (
 				8D22CD6C2CC12266002C5EF3 /* GoogleGenerativeAI */,
+				8D22CD792CC688B3002C5EF3 /* CachedAsyncImage */,
 			);
 			productName = SmartyPants;
 			productReference = 8D22CD3E2CC12225002C5EF3 /* SmartyPants.app */;
@@ -237,6 +240,7 @@
 			mainGroup = 8D22CD352CC12225002C5EF3;
 			packageReferences = (
 				8D22CD6B2CC12266002C5EF3 /* XCRemoteSwiftPackageReference "generative-ai-swift" */,
+				8D22CD782CC688A2002C5EF3 /* XCRemoteSwiftPackageReference "swiftui-cached-async-image" */,
 			);
 			productRefGroup = 8D22CD3F2CC12225002C5EF3 /* Products */;
 			projectDirPath = "";
@@ -626,6 +630,14 @@
 				minimumVersion = 0.5.6;
 			};
 		};
+		8D22CD782CC688A2002C5EF3 /* XCRemoteSwiftPackageReference "swiftui-cached-async-image" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/lorenzofiamingo/swiftui-cached-async-image";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.1.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -633,6 +645,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 8D22CD6B2CC12266002C5EF3 /* XCRemoteSwiftPackageReference "generative-ai-swift" */;
 			productName = GoogleGenerativeAI;
+		};
+		8D22CD792CC688B3002C5EF3 /* CachedAsyncImage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8D22CD782CC688A2002C5EF3 /* XCRemoteSwiftPackageReference "swiftui-cached-async-image" */;
+			productName = CachedAsyncImage;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
