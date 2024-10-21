@@ -18,9 +18,9 @@ struct ChatCellView: View {
 		HStack {
 			if chatMsg.role == .model {
 				
-				if let data = chatMsg.parts.last, let text = String(data: data, encoding: .utf8), let imageURL = URL(string: text) {
+				if let imageDTO = chatMsg.parts.last as? GenAI_Message_Images_DTO, let imageURL = URL(string: imageDTO.inline_data.data) {
 					CachedAsyncImage(url: imageURL, urlCache: .imageCache)
-				} else if let data = chatMsg.parts.last, let textDTO = try? JSONDecoder().decode(GenAI_Message_Text_DTO.self, from: data) {
+				} else if let textDTO = chatMsg.parts.last as? GenAI_Message_Text_DTO {
 					Text(textDTO.text)
 						.font(.subheadline)
 						.fontWeight(.semibold)
@@ -40,11 +40,9 @@ struct ChatCellView: View {
 				Spacer(minLength: 100)
 			} else {
 				Spacer(minLength: 100)
-					if let data = chatMsg.parts.last, let text = String(data: data, encoding: .utf8), let imageURL = URL(string: text) {
+				if let imageDTO = chatMsg.parts.last as? GenAI_Message_Images_DTO, let imageURL = URL(string: imageDTO.inline_data.data) {
 						CachedAsyncImage(url: imageURL, urlCache: .imageCache)
-					} else if let data = chatMsg.parts.last, let textDTO = try? JSONDecoder().decode(GenAI_Message_Text_DTO.self, from: data) {
-
-						
+					} else if let textDTO = chatMsg.parts.last as? GenAI_Message_Text_DTO {
 						Text(textDTO.text)
 							.font(.subheadline)
 							.fontWeight(.semibold)

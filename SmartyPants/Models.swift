@@ -39,24 +39,8 @@ struct GenAI_Convo_Request_DTO: Codable {
 	}
 }
 extension GenAI_Convo_Request_DTO {
-	func toDictionary() -> [String: [String: Codable]]? {
-		//run bfs
-		guard let contents = self.contents else { return  nil }
-		var parentDict: [String: [String: Codable]] = [:]
-		var userDict: [String: Codable] = [:]
-		for item in contents {
-			userDict["role"] = item.role.rawValue
-			let partsResult = self.generateParts(using: item.parts)
-			userDict["parts"] = partsResult
-		}
-		parentDict["contents"] = userDict
-		return parentDict
-		
-	}
-	private func generateParts(using dataAry: [Data]) -> [String] {
-		dataAry.map {
-			return String(data: $0, encoding: .utf8)!
-		}
+	func encoded() throws -> Data {
+		return try JSONEncoder().encode(self)
 	}
 }
 
@@ -119,14 +103,40 @@ struct GenAI_Response_SafetyRating: Codable {
 //	var inline_data: String
 //}
 struct GenAI_Request_DTO: Codable, Identifiable, Equatable {
+	static func == (lhs: GenAI_Request_DTO, rhs: GenAI_Request_DTO) -> Bool {
+		let isSameRole = lhs.role.rawValue == rhs.role.rawValue
+		for (lPart, rPart) in zip(lhs.parts, rhs.parts) {
+			
+			if let lTextDTO = lPart as? GenAI_Message_Text_DTO {
+				
+				guard let rTextDTO = rPart as? GenAI_Message_Text_DTO else {
+					return false
+				}
+				
+				return lTextDTO.text == rTextDTO.text
+				
+			} else if let lImageDTO = lPart as? GenAI_Message_Images_DTO {
+				
+				guard let rImageDTO = rPart as? GenAI_Message_Images_DTO else {
+					
+					return false
+				}
+				return lImageDTO.inline_data.data == rImageDTO.inline_data.data
+			} else {
+				return false
+			}
+		}
+		return false
+	}
+	
 	var id = UUID()
 	var role: API_UserType
-	var parts: [Data]
+	var parts: [Codable]
 	enum CodingKeys: String, CodingKey {
 		case role, parts
 	}
 	
-	init(id: UUID = UUID(), role: API_UserType, parts: [Data]) {
+	init(id: UUID = UUID(), role: API_UserType, parts: [Codable]) {
 		self.id = id
 		self.role = role
 		self.parts = parts
@@ -136,6 +146,23 @@ struct GenAI_Request_DTO: Codable, Identifiable, Equatable {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 		self.role = try container.decode(API_UserType.self, forKey: .role)
 		self.parts = try container.decode([Data].self, forKey: .parts)
+	}
+	func encode(to encoder: any Encoder) throws {
+		var container = encoder.container(keyedBy: CodingKeys.self)
+		var jsonAry: [JSONObject] = []
+		for item in parts {
+			if let textDTO = item as? GenAI_Message_Text_DTO {
+				let textObj = JSONObject.init(dictionaryLiteral: ("text", JSONValue.string(textDTO.text)))
+				jsonAry.append(textObj)
+			} else if let imageDTO = item as? GenAI_Message_Images_DTO {
+				let dataInner = JSONObject.init(dictionaryLiteral:
+								("mime_type", JSONValue.string("image/jpeg")),
+								("data", JSONValue.string(imageDTO.inline_data.data)))
+				let inlineObj = JSONObject.init(dictionaryLiteral: ("inline_data", JSONValue.object(dataInner)))
+				jsonAry.append(inlineObj)
+			}
+		}
+		try container.encode(jsonAry, forKey: .parts)
 	}
 }
 struct GenAI_Message_Text_DTO: Codable, Equatable {
