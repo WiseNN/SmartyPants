@@ -32,7 +32,6 @@ struct ChatView: View {
 									proxy.scrollTo(last.id)
 							}
 						}
-						
 						HStack {
 							PhotosPicker(selection: $pickerItem, matching: .images, photoLibrary: .shared()) {
 								Image(systemName: "plus.circle")
@@ -44,7 +43,7 @@ struct ChatView: View {
 									viewModel.photoRetrievalError(msg: "Sorry, this photo is missing.")
 									return
 								}
-								viewModel.sendPhoto(pickerItem: newPhoto)
+								viewModel.sendPhoto(pickerItem: newPhoto, with: viewModel.msgText)
 							}
 							
 							
@@ -70,20 +69,13 @@ struct ChatView: View {
 					} message: {
 						Text(viewModel.errMsg)
 					}
-						
-						
 					}
-
-					
-			
-			
 		}
 		.searchable(text: $searchText)
 		.onAppear {
-//			viewModel.clearChat()
+			viewModel.clearChat()
 		}
     }
-		
 }
 
 #Preview {

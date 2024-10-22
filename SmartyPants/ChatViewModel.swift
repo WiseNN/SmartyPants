@@ -40,34 +40,31 @@ class ChatViewModel: ObservableObject {
 	}
 	func sendChat(msg: String, hasImage: Bool = false)  {
 		self.sendChatTask?.cancel()
-		
-	
-		
-		self.sendChatTask = Task {
-			do {
-				await MainActor.run {
-					//if user sent last message, attach this message to last else add a new message in ary
-					if self.msgAry.last?.role == .user  {
-						if hasImage {
-							var lastMsg = self.msgAry.removeLast()
-							lastMsg.parts.append(GenAI_Message_Images_DTO(inline_data: GenAI_Message_Images_Data_DTO(data: msg)))
-							self.msgAry.append(lastMsg)
-							
-						} else {
-							var lastMsg = self.msgAry.removeLast()
-							lastMsg.parts.append(GenAI_Message_Text_DTO(text: msg))
-							self.msgAry.append(lastMsg)
-						}
-						
-					} else {
-						if hasImage {
-							self.msgAry.append(GenAI_Request_DTO(role: .user, parts: [GenAI_Message_Images_DTO(inline_data: GenAI_Message_Images_Data_DTO(data: msg))]))
-						} else {
-							self.msgAry.append(GenAI_Request_DTO(role: .user, parts: [GenAI_Message_Text_DTO(text: msg)]))
-						}
-						
-					}
+			//if user sent last message, attach this message to last else add a new message in ary
+			if self.msgAry.last?.role == .user  {
+				if hasImage {
+					var lastMsg = self.msgAry.removeLast()
+					lastMsg.parts.append(GenAI_Message_Images_DTO(inline_data: GenAI_Message_Images_Data_DTO(data: msg)))
+					
+					self.msgAry.append(lastMsg)
+				} else {
+					var lastMsg = self.msgAry.removeLast()
+					lastMsg.parts.append(GenAI_Message_Text_DTO(text: msg))
+					self.msgAry.append(lastMsg)
 				}
+			} else {
+				if hasImage {
+					self.msgAry.append(GenAI_Request_DTO(role: .user, parts: [GenAI_Message_Images_DTO(inline_data: GenAI_Message_Images_Data_DTO(data: msg))]))
+				} else {
+					self.msgAry.append(GenAI_Request_DTO(role: .user, parts: [GenAI_Message_Text_DTO(text: msg)]))
+				}
+				
+			}
+		self.msgText = ""
+		
+		self.sendChatTask = Task(priority: .userInitiated) {
+			do {
+				
 				let urlStr = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=\(Keys.API.default)"
 				let url = URL(string: urlStr)!
 				var urlRequest = URLRequest(url: url)
@@ -84,11 +81,15 @@ class ChatViewModel: ObservableObject {
 				
 				guard let httpResp = urlResp as? HTTPURLResponse, (200..<300).contains(httpResp.statusCode) else {
 					if data.count > 0 {
-						self.errMsg = String(data: data, encoding: .utf8) ?? "Network Error"
-						self.hasErr = true
+						DispatchQueue.main.async {
+							self.errMsg = String(data: data, encoding: .utf8) ?? "Network Error"
+							self.hasErr = true
+						}
 					} else {
-						self.errMsg = "Network Error"
-						self.hasErr = true
+						DispatchQueue.main.async {
+							self.errMsg = "Network Error"
+							self.hasErr = true
+						}
 					}
 					return
 				}
@@ -106,7 +107,6 @@ class ChatViewModel: ObservableObject {
 								case .string(let textValue):
 									if key == "text" {
 										DispatchQueue.main.async {
-											self.msgText = ""
 											let textDTO = GenAI_Message_Text_DTO(text: textValue)
 											self.msgAry.append(GenAI_Response_Parts_DTO(role: .model, parts: [textDTO]))
 										}
@@ -115,13 +115,14 @@ class ChatViewModel: ObservableObject {
 									break
 								default:
 									print("Error [LOGIC]: Case unhandled.")
+									self.errMsg = "Internal Error"
+									self.hasErr = true
 									break
 							}
 						}
 					} else if let imageDTO = lastMsg as? GenAI_Message_Images_DTO {
 						DispatchQueue.main.async {
 							self.msgAry.append(GenAI_Response_Parts_DTO(role: .model, parts: [imageDTO]))
-							self.msgText = ""
 						}
 					}
 					print("AI~Response: \(lastMsg)")
@@ -153,7 +154,7 @@ class ChatViewModel: ObservableObject {
 			self.hasErr = true
 		}
 	}
-	func sendPhoto(pickerItem: PhotosPickerItem) {
+	func sendPhoto(pickerItem: PhotosPickerItem, with textMsg: String? = nil) {
 		
 		Task {
 			do {
@@ -164,7 +165,12 @@ class ChatViewModel: ObservableObject {
 					return
 				}
 				let baseEncoded64ImageStr = imageData.base64EncodedString()
-				self.sendChat(msg: baseEncoded64ImageStr, hasImage: true)
+				if let textMsg, !textMsg.isEmpty {
+					DispatchQueue.main.sync {
+						self.msgAry.append(GenAI_Request_DTO(role: .user, parts: [GenAI_Message_Text_DTO(text: textMsg)]))
+						self.sendChat(msg: baseEncoded64ImageStr, hasImage: true)
+					}
+				}
 			} catch let err {
 				self.errMsg = "\(err)"
 				self.hasErr = true
