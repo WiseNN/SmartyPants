@@ -1,1 +1,1 @@
-# SpartyPants
+# SmartyPants
