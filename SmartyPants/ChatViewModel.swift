@@ -7,6 +7,8 @@
 
 import Foundation
 import GoogleGenerativeAI
+import _PhotosUI_SwiftUI
+import SwiftUI
 
 class ChatViewModel: ObservableObject {
 	@Published var hasErr = false
@@ -14,7 +16,7 @@ class ChatViewModel: ObservableObject {
 	@Published var msgText = ""
 	
 	@Published var msgAry: [GenAI_Request_DTO] = [
-		GenAI_Response_Parts_DTO(role: .user, parts: [GenAI_Message_Text_DTO(text: "Me")]),
+		GenAI_Response_Parts_DTO(role: .user, parts: [GenAI_Message_Text_DTO(text: "Me dnvsjkdf vkjsd fnvkjsn flvkjs ndflvkj sdfkvjnsldkfjnvlskjfv lksjdfnvlkjsdfn vlkjsd fvlkjsdn flvkjfsdnf l kvj sdlfkvjn sdlkfvjn lsdkfjv lskjdfvn lksjdfnv lksjnvklsfdv")]),
 		GenAI_Response_Parts_DTO(role: .model, parts: [GenAI_Message_Text_DTO(text: "You")]),
 		GenAI_Response_Parts_DTO(role: .user, parts: [GenAI_Message_Text_DTO(text: "Me")]),
 		GenAI_Response_Parts_DTO(role: .model, parts: [GenAI_Message_Text_DTO(text: "You")])
@@ -36,7 +38,7 @@ class ChatViewModel: ObservableObject {
 			print("ERROR::GenAI: -- \(err.localizedDescription)")
 		}
 	}
-	func sendChat(msg: String)  {
+	func sendChat(msg: String, hasImage: Bool = false)  {
 		self.sendChatTask?.cancel()
 		
 	
@@ -44,12 +46,26 @@ class ChatViewModel: ObservableObject {
 		self.sendChatTask = Task {
 			do {
 				await MainActor.run {
+					//if user sent last message, attach this message to last else add a new message in ary
 					if self.msgAry.last?.role == .user  {
-						var lastMsg = self.msgAry.removeLast()
-						lastMsg.parts.append(GenAI_Message_Text_DTO(text: msg))
-						self.msgAry.append(lastMsg)
+						if hasImage {
+							var lastMsg = self.msgAry.removeLast()
+							lastMsg.parts.append(GenAI_Message_Images_DTO(inline_data: GenAI_Message_Images_Data_DTO(data: msg)))
+							self.msgAry.append(lastMsg)
+							
+						} else {
+							var lastMsg = self.msgAry.removeLast()
+							lastMsg.parts.append(GenAI_Message_Text_DTO(text: msg))
+							self.msgAry.append(lastMsg)
+						}
+						
 					} else {
-						self.msgAry.append(GenAI_Request_DTO(role: .user, parts: [GenAI_Message_Text_DTO(text: msg)]))
+						if hasImage {
+							self.msgAry.append(GenAI_Request_DTO(role: .user, parts: [GenAI_Message_Images_DTO(inline_data: GenAI_Message_Images_Data_DTO(data: msg))]))
+						} else {
+							self.msgAry.append(GenAI_Request_DTO(role: .user, parts: [GenAI_Message_Text_DTO(text: msg)]))
+						}
+						
 					}
 				}
 				let urlStr = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=\(Keys.API.default)"
@@ -80,15 +96,35 @@ class ChatViewModel: ObservableObject {
 //				let dtoConvos = try? JSONSerialization.jsonObject(with: data) as? NSDictionary
 				
 				
-				let dict = try JSONSerialization.jsonObject(with: data) as? NSDictionary
 				let dtoResponse = try JSONDecoder().decode(GenAI_Response_DTO.self, from: data)
 				
 				if data.count > 0, let lastMsg = dtoResponse.candidates?.first?.content.parts.last {
-					print("AI~Response: \(lastMsg)")
-					DispatchQueue.main.async {
-						self.msgAry.append(GenAI_Response_Parts_DTO(role: .model, parts: [lastMsg]))
-						self.msgText = ""
+					
+					if let obj = lastMsg as? JSONObject {
+						for (key, value) in obj {
+							switch value {
+								case .string(let textValue):
+									if key == "text" {
+										DispatchQueue.main.async {
+											self.msgText = ""
+											let textDTO = GenAI_Message_Text_DTO(text: textValue)
+											self.msgAry.append(GenAI_Response_Parts_DTO(role: .model, parts: [textDTO]))
+										}
+									}
+										
+									break
+								default:
+									print("Error [LOGIC]: Case unhandled.")
+									break
+							}
+						}
+					} else if let imageDTO = lastMsg as? GenAI_Message_Images_DTO {
+						DispatchQueue.main.async {
+							self.msgAry.append(GenAI_Response_Parts_DTO(role: .model, parts: [imageDTO]))
+							self.msgText = ""
+						}
 					}
+					print("AI~Response: \(lastMsg)")
 				} else  {
 					DispatchQueue.main.async {
 						self.errMsg = "Looks like our guy is taking a nap. Please send a message later. Thank you!🙂"
@@ -111,6 +147,31 @@ class ChatViewModel: ObservableObject {
 			self.msgAry.removeAll()	
 		}
 	}
+	func photoRetrievalError(msg: String) {
+		DispatchQueue.main.async {
+			self.errMsg = msg
+			self.hasErr = true
+		}
+	}
+	func sendPhoto(pickerItem: PhotosPickerItem) {
+		
+		Task {
+			do {
+				let retrievedUIImage = try await pickerItem.convert()
+				guard let imageData = retrievedUIImage.jpegData(compressionQuality: 0.3) else {
+					self.errMsg = "Sorry, we are having trouble sending this image. Please contact support. Thank you!🙂"
+					self.hasErr = true
+					return
+				}
+				let baseEncoded64ImageStr = imageData.base64EncodedString()
+				self.sendChat(msg: baseEncoded64ImageStr, hasImage: true)
+			} catch let err {
+				self.errMsg = "\(err)"
+				self.hasErr = true
+			}
+		}
+	}
+	
 }
 
 

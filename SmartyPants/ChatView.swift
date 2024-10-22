@@ -7,11 +7,14 @@
 
 import SwiftUI
 import GoogleGenerativeAI
+import _PhotosUI_SwiftUI
 
 
 struct ChatView: View {
 	@ObservedObject var viewModel: ChatViewModel
 	@State var searchText = ""
+	@State var pickerItem: PhotosPickerItem?
+	@State var selectedImage: Image?
 	
 	
 	
@@ -30,15 +33,32 @@ struct ChatView: View {
 							}
 						}
 						
-						TextField(text: $viewModel.msgText, prompt: Text("Message..."), axis: .vertical) {
+						HStack {
+							PhotosPicker(selection: $pickerItem, matching: .images, photoLibrary: .shared()) {
+								Image(systemName: "plus.circle")
+									.resizable()
+									.frame(width: 25, height: 25)
 							}
-							.lineLimit(.max)
-							.controlSize(.extraLarge)
-							.textFieldStyle(RoundedBorderTextFieldStyle())
-							.submitLabel(.done)
-							.onSubmit() {
-								viewModel.sendChat(msg: viewModel.msgText)
+							.onChange(of: pickerItem) { _, newPhoto in
+								guard let newPhoto else {
+									viewModel.photoRetrievalError(msg: "Sorry, this photo is missing.")
+									return
+								}
+								viewModel.sendPhoto(pickerItem: newPhoto)
 							}
+							
+							
+							TextField(text: $viewModel.msgText, prompt: Text("Message..."), axis: .vertical) {
+								}
+								.lineLimit(.max)
+								.controlSize(.extraLarge)
+								.textFieldStyle(RoundedBorderTextFieldStyle())
+								.submitLabel(.done)
+								.onSubmit() {
+									viewModel.sendChat(msg: viewModel.msgText)
+								}
+							
+						}
 						.safeAreaPadding()
 					}
 					.listRowBackground(Color.clear)
@@ -60,7 +80,7 @@ struct ChatView: View {
 		}
 		.searchable(text: $searchText)
 		.onAppear {
-			viewModel.clearChat()
+//			viewModel.clearChat()
 		}
     }
 		
